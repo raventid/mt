@@ -1,0 +1,16 @@
+# Sum 0..n-1: exercises phi, jnz, jmp (docs/il.md, v0).
+function w $sum(w %n) {
+@start
+    jmp @loop
+@loop
+    %i =w phi @start 0, @body %i2
+    %acc =w phi @start 0, @body %acc2
+    %cond =w sub %n, %i
+    jnz %cond, @body, @done
+@body
+    %acc2 =w add %acc, %i
+    %i2 =w add %i, 1
+    jmp @loop
+@done
+    ret %acc
+}

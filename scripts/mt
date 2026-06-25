@@ -1,0 +1,32 @@
+#!/bin/sh
+# mt — pipeline driver. Wires whatever stages are currently built:
+#   input.ssa -> [ATS3 front, Node] -> IL -> [ATS2 backend, native] -> output
+# The Zig backend remains as insurance. Missing stages degrade to
+# passthrough with a note on stderr.
+set -e
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+FRONT="$ROOT/ats/build/front_out.js"
+BACK_ATS2="$ROOT/ats2/build/mtb"
+BACK_ZIG="$ROOT/zig/zig-out/bin/mtb"
+
+IN="${1:?usage: mt <input.ssa>}"
+
+front() {
+    if [ -f "$FRONT" ]; then
+        # Same stack-size headroom the toolchain itself uses.
+        node --stack-size=8800 "$FRONT" "$IN"
+    else
+        echo "mt: ATS3 front not built (ats/build/front_out.js missing); passing input through" >&2
+        cat "$IN"
+    fi
+}
+
+if [ -x "$BACK_ATS2" ]; then
+    front | "$BACK_ATS2"
+elif [ -x "$BACK_ZIG" ]; then
+    front | "$BACK_ZIG"
+else
+    echo "mt: no backend built (see ats2/, zig/); emitting IL" >&2
+    front
+fi

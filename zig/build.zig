@@ -10,9 +10,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
     });
 
-    // CLI executable, which imports the library module above.
+    // Backend executable (`mtb`), which imports the library module above.
+    // The user-facing `mt` driver lives in scripts/mt at the repo root.
     const exe = b.addExecutable(.{
-        .name = "mt",
+        .name = "mtb",
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main.zig"),
             .target = target,
